@@ -38,4 +38,12 @@ pub enum UniswapV3MathError {
     TickSpacingError,
     #[error("Middleware error when getting next_initialized_tick_within_one_word")]
     MiddlewareError(String),
+    #[error("SqrtPrice Lower Than Min")]
+    SplM,
+    #[error("SqrtPrice Lower Than Current")]
+    SplC,
+    #[error("SqrtPrice Upper Than Max")]
+    SpuM,
+    #[error("SqrtPrice Upper Than Current")]
+    SpuC,
 }

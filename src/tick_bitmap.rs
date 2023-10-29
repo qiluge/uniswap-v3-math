@@ -3,7 +3,8 @@ use ethers::{
     providers::Middleware,
     types::{BlockNumber, H160, U256},
 };
-use std::{collections::HashMap, sync::Arc};
+use hashbrown::HashMap;
+use std::sync::Arc;
 
 //Flips the initialized state for a given tick from false to true, or vice versa
 pub fn flip_tick(
@@ -187,7 +188,8 @@ pub fn position(tick: i32) -> (i16, u8) {
 
 #[cfg(test)]
 mod test {
-    use std::{collections::HashMap, vec};
+    use hashbrown::HashMap;
+    use std::vec;
 
     use ethers::types::U256;
 

@@ -11,8 +11,9 @@ keywords = ["uniswapV3", "math"]
 exclude = ["target/*", ".github/*", ".gitignore", "Uniswap/*"]
 
 [dependencies]
-ethers = { version = "2.0.0", default-features = false, features = ["abigen"] }
+ethers = {git = "https://github.com/qiluge/ethers-rs.git", default-features = false, features = ["abigen"] }
 eyre = "0.6.8"
 ruint = "1.7.0"
 thiserror = "1.0.38"
 hashbrown = { version = "0.12.3", features = [] }
+lazy_static = { version = "1.4.0", features = [] }

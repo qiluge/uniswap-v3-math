@@ -374,9 +374,9 @@ dependencies = [
 
 [[package]]
 name = "cargo_metadata"
-version = "0.17.0"
+version = "0.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e7daec1a2a2129eeba1644b220b4647ec537b0b5d4bfd6876fcc5a540056b592"
+checksum = "2d886547e41f740c616ae73108f6eb70afe6d940c7bc697cb30f13daec073037"
 dependencies = [
  "camino",
  "cargo-platform",
@@ -776,8 +776,7 @@ dependencies = [
 [[package]]
 name = "ethers"
 version = "2.0.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1ad13497f6e0a24292fc7b408e30d22fe9dc262da1f40d7b542c3a44e7fc0476"
+source = "git+https://github.com/qiluge/ethers-rs.git#7905cb5813b37dae2e8820f479f20af4938492ab"
 dependencies = [
  "ethers-addressbook",
  "ethers-contract",
@@ -791,8 +790,7 @@ dependencies = [
 [[package]]
 name = "ethers-addressbook"
 version = "2.0.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6e9e8acd0ed348403cc73a670c24daba3226c40b98dc1a41903766b3ab6240a"
+source = "git+https://github.com/qiluge/ethers-rs.git#7905cb5813b37dae2e8820f479f20af4938492ab"
 dependencies = [
  "ethers-core",
  "once_cell",
@@ -803,8 +801,7 @@ dependencies = [
 [[package]]
 name = "ethers-contract"
 version = "2.0.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d79269278125006bb0552349c03593ffa9702112ca88bc7046cc669f148fb47c"
+source = "git+https://github.com/qiluge/ethers-rs.git#7905cb5813b37dae2e8820f479f20af4938492ab"
 dependencies = [
  "const-hex",
  "ethers-contract-abigen",
@@ -822,8 +819,7 @@ dependencies = [
 [[package]]
 name = "ethers-contract-abigen"
 version = "2.0.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ce95a43c939b2e4e2f3191c5ad4a1f279780b8a39139c9905b43a7433531e2ab"
+source = "git+https://github.com/qiluge/ethers-rs.git#7905cb5813b37dae2e8820f479f20af4938492ab"
 dependencies = [
  "Inflector",
  "const-hex",
@@ -844,8 +840,7 @@ dependencies = [
 [[package]]
 name = "ethers-contract-derive"
 version = "2.0.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e9ce44906fc871b3ee8c69a695ca7ec7f70e50cb379c9b9cb5e532269e492f6"
+source = "git+https://github.com/qiluge/ethers-rs.git#7905cb5813b37dae2e8820f479f20af4938492ab"
 dependencies = [
  "Inflector",
  "const-hex",
@@ -860,8 +855,7 @@ dependencies = [
 [[package]]
 name = "ethers-core"
 version = "2.0.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0a17f0708692024db9956b31d7a20163607d2745953f5ae8125ab368ba280ad"
+source = "git+https://github.com/qiluge/ethers-rs.git#7905cb5813b37dae2e8820f479f20af4938492ab"
 dependencies = [
  "arrayvec",
  "bytes",
@@ -890,8 +884,7 @@ dependencies = [
 [[package]]
 name = "ethers-etherscan"
 version = "2.0.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e53451ea4a8128fbce33966da71132cf9e1040dcfd2a2084fd7733ada7b2045"
+source = "git+https://github.com/qiluge/ethers-rs.git#7905cb5813b37dae2e8820f479f20af4938492ab"
 dependencies = [
  "ethers-core",
  "reqwest",
@@ -905,8 +898,7 @@ dependencies = [
 [[package]]
 name = "ethers-middleware"
 version = "2.0.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "473f1ccd0c793871bbc248729fa8df7e6d2981d6226e4343e3bbaa9281074d5d"
+source = "git+https://github.com/qiluge/ethers-rs.git#7905cb5813b37dae2e8820f479f20af4938492ab"
 dependencies = [
  "async-trait",
  "auto_impl",
@@ -932,8 +924,7 @@ dependencies = [
 [[package]]
 name = "ethers-providers"
 version = "2.0.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6838fa110e57d572336178b7c79e94ff88ef976306852d8cb87d9e5b1fc7c0b5"
+source = "git+https://github.com/qiluge/ethers-rs.git#7905cb5813b37dae2e8820f479f20af4938492ab"
 dependencies = [
  "async-trait",
  "auto_impl",
@@ -968,8 +959,7 @@ dependencies = [
 [[package]]
 name = "ethers-signers"
 version = "2.0.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ea44bec930f12292866166f9ddbea6aa76304850e4d8dcd66dc492b43d00ff1"
+source = "git+https://github.com/qiluge/ethers-rs.git#7905cb5813b37dae2e8820f479f20af4938492ab"
 dependencies = [
  "async-trait",
  "coins-bip32",
@@ -2620,14 +2610,14 @@ dependencies = [
 
 [[package]]
 name = "toml"
-version = "0.7.8"
+version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd79e69d3b627db300ff956027cc6c3798cef26d22526befdfcd12feeb6d2257"
+checksum = "8ff9e3abce27ee2c9a37f9ad37238c1bdd4e789c84ba37df76aa4d528f5072cc"
 dependencies = [
  "serde",
  "serde_spanned",
  "toml_datetime",
- "toml_edit 0.19.15",
+ "toml_edit 0.20.7",
 ]
 
 [[package]]
@@ -2646,8 +2636,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b5bb770da30e5cbfde35a2d7b9b8a2c4b8ef89548a7a6aeab5c9a576e3e7421"
 dependencies = [
  "indexmap 2.0.2",
- "serde",
- "serde_spanned",
  "toml_datetime",
  "winnow",
 ]
@@ -2659,6 +2647,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "70f427fce4d84c72b5b732388bf4a9f4531b53f74e2887e3ecb2481f68f66d81"
 dependencies = [
  "indexmap 2.0.2",
+ "serde",
+ "serde_spanned",
  "toml_datetime",
  "winnow",
 ]
@@ -2780,6 +2770,7 @@ dependencies = [
  "ethers",
  "eyre",
  "hashbrown 0.12.3",
+ "lazy_static",
  "ruint",
  "thiserror",
 ]

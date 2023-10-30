@@ -6,6 +6,7 @@ use crate::tick_math;
 use ethers::prelude::*;
 use hashbrown::HashMap;
 
+#[derive(Clone)]
 pub struct TickInfo {
     pub index: i32,
     // liquidity gross
@@ -86,7 +87,7 @@ pub fn swap(
         step.sqrt_price_start_x96 = state.sqrt_price_x96;
         (step.tick_next, step.initialized) = tick_bitmap::next_initialized_tick_within_one_word(
             tick_bitmap,
-            slot0.tick,
+            state.tick,
             tick_spacing,
             zero_for_one,
         )?;

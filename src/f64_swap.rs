@@ -1,13 +1,13 @@
-use hashbrown::HashMap;
-use crate::swap::{Slot0, TickInfo};
-use ethers::prelude::U256;
-use lazy_static::lazy_static;
 use crate::error::UniswapV3MathError;
+use crate::swap::{Slot0, TickInfo};
 use crate::tick_bitmap;
 use crate::tick_math;
+use ethers::prelude::U256;
+use hashbrown::HashMap;
+use lazy_static::lazy_static;
 
 lazy_static! {
-    pub static ref  Q96: f64 = 2f64.powi(96);
+    pub static ref Q96: f64 = 2f64.powi(96);
     pub static ref Q192: f64 = 2f64.powi(192);
 }
 
@@ -39,16 +39,18 @@ pub struct SwapResult {
     pub tick_after: i32,
 }
 
-pub fn swap(ticks: &HashMap<i32, TickInfo>,
-            tick_bitmap: &HashMap<i16, U256>,
-            tick_spacing: i32,
-            zero_for_one: bool,
-            amount_specified: f64,
-            sqrt_price_limit: U256,
-            slot0: &Slot0,
-            fee: f64,
-            token0_decimals_factor: f64,
-            token1_decimals_factor: f64) -> Result<SwapResult, UniswapV3MathError> {
+pub fn swap(
+    ticks: &HashMap<i32, TickInfo>,
+    tick_bitmap: &HashMap<i16, U256>,
+    tick_spacing: i32,
+    zero_for_one: bool,
+    amount_specified: f64,
+    sqrt_price_limit: U256,
+    slot0: &Slot0,
+    fee: f64,
+    token0_decimals_factor: f64,
+    token1_decimals_factor: f64,
+) -> Result<SwapResult, UniswapV3MathError> {
     if ticks.len() == 0 {
         return Ok(SwapResult::default());
     }
@@ -69,15 +71,19 @@ pub fn swap(ticks: &HashMap<i32, TickInfo>,
     }
     let exact_input = amount_specified > 0f64;
     let amount_specified_remaining = if zero_for_one {
-        if amount_specified > 0f64 { // input token 0
+        if amount_specified > 0f64 {
+            // input token 0
             amount_specified * token0_decimals_factor
-        } else { // output token1
+        } else {
+            // output token1
             amount_specified * token1_decimals_factor
         }
     } else {
-        if amount_specified > 0f64 { // input token 1
+        if amount_specified > 0f64 {
+            // input token 1
             amount_specified * token1_decimals_factor
-        } else { // output token 0
+        } else {
+            // output token 0
             amount_specified * token0_decimals_factor
         }
     };
@@ -89,9 +95,10 @@ pub fn swap(ticks: &HashMap<i32, TickInfo>,
         tick: slot0.tick,
         liquidity: slot0.liquidity as f64,
     };
+    let mut exhausted = false;
     loop {
         // 流动性归零或者amount消耗完
-        if amount_specified_remaining == 0f64 || state.liquidity <= 0f64 {
+        if exhausted || state.amount_specified_remaining == 0f64 || state.liquidity <= 0f64 {
             break;
         }
         // 价格到了限价
@@ -135,6 +142,7 @@ pub fn swap(ticks: &HashMap<i32, TickInfo>,
             step.amount_in,
             step.amount_out,
             step.fee_amount,
+            exhausted,
         ) = compute_swap_step(
             state.sqrt_price_x96,
             target_price,
@@ -143,7 +151,8 @@ pub fn swap(ticks: &HashMap<i32, TickInfo>,
             fee,
         );
         if exact_input {
-            state.amount_specified_remaining = state.amount_specified_remaining - (step.amount_in + step.fee_amount);
+            state.amount_specified_remaining =
+                state.amount_specified_remaining - (step.amount_in + step.fee_amount);
             state.amount_calculated = state.amount_calculated - step.amount_out;
         } else {
             state.amount_specified_remaining = state.amount_specified_remaining + step.amount_out;
@@ -188,7 +197,15 @@ pub fn swap(ticks: &HashMap<i32, TickInfo>,
     });
 }
 
-fn compute_swap_step(sqrt_p_current: f64, sqrt_p_target: f64, l: f64, amount_remaining: f64, fee_pips: f64) -> (f64, f64, f64, f64) {
+// 最后一个值表示amount_remaining是否耗尽了
+// 由于是浮点计算，外层扣除amount_remaining时会有误差，所以这个方法额外返回一个bool值辅助外层调用，判断是否应该结束swap
+fn compute_swap_step(
+    sqrt_p_current: f64,
+    sqrt_p_target: f64,
+    l: f64,
+    amount_remaining: f64,
+    fee_pips: f64,
+) -> (f64, f64, f64, f64, bool) {
     let zero_for_one = sqrt_p_current >= sqrt_p_target;
     let exact_in = amount_remaining >= 0f64;
     // return values
@@ -196,8 +213,8 @@ fn compute_swap_step(sqrt_p_current: f64, sqrt_p_target: f64, l: f64, amount_rem
     let mut amount_in = 0f64;
     let mut amount_out = 0f64;
     let fee_amount;
-
     let mut max = false;
+    let mut exhausted = false;
     if exact_in {
         let amount_remaining_less_fee = amount_remaining * (1f64 - fee_pips);
         // 计算将价格打到target price需要多少input
@@ -210,8 +227,15 @@ fn compute_swap_step(sqrt_p_current: f64, sqrt_p_target: f64, l: f64, amount_rem
         if amount_remaining_less_fee >= amount_in {
             sqrt_p_next = sqrt_p_target;
             max = true;
-        } else { // 数量不够，则计算这些input能将价格推到的新的价格
-            sqrt_p_next = get_sqrt_price_from_input(zero_for_one, amount_remaining_less_fee, sqrt_p_current, l);
+        } else {
+            // 数量不够，则计算这些input能将价格推到的新的价格
+            sqrt_p_next = get_sqrt_price_from_input(
+                zero_for_one,
+                amount_remaining_less_fee,
+                sqrt_p_current,
+                l,
+            );
+            exhausted = true;
         }
     } else {
         // 计算将价格打到target price能swap出多少output
@@ -225,8 +249,11 @@ fn compute_swap_step(sqrt_p_current: f64, sqrt_p_target: f64, l: f64, amount_rem
             // 就把价格打到target price
             sqrt_p_next = sqrt_p_target;
             max = true;
-        } else { // 否则计算新的价格
-            sqrt_p_next = get_sqrt_price_from_output(zero_for_one, -amount_remaining, sqrt_p_current, l);
+        } else {
+            // 否则计算新的价格
+            sqrt_p_next =
+                get_sqrt_price_from_output(zero_for_one, -amount_remaining, sqrt_p_current, l);
+            exhausted = true;
         }
     }
     if zero_for_one {
@@ -238,10 +265,10 @@ fn compute_swap_step(sqrt_p_current: f64, sqrt_p_target: f64, l: f64, amount_rem
         }
     } else {
         if !max || !exact_in {
-            amount_in = get_amount0_delta(sqrt_p_current, sqrt_p_next, l);
+            amount_in = get_amount1_delta(sqrt_p_current, sqrt_p_next, l);
         }
         if !max || exact_in {
-            amount_out = get_amount1_delta(sqrt_p_current, sqrt_p_next, l);
+            amount_out = get_amount0_delta(sqrt_p_current, sqrt_p_next, l);
         }
     }
     // cap the output amount to not exceed the remaining output amount
@@ -254,18 +281,24 @@ fn compute_swap_step(sqrt_p_current: f64, sqrt_p_target: f64, l: f64, amount_rem
     } else {
         fee_amount = amount_in * fee_pips / (1f64 - fee_pips);
     }
-    return (sqrt_p_next, amount_in, amount_out, fee_amount);
+    return (sqrt_p_next, amount_in, amount_out, fee_amount, exhausted);
 }
 
 fn get_amount0_delta(sqrt_price_lower: f64, sqrt_price_upper: f64, sqrt_l: f64) -> f64 {
-    return sqrt_l * *Q96 * (sqrt_price_upper - sqrt_price_lower) / (sqrt_price_lower * sqrt_price_upper);
+    return sqrt_l * *Q96 * (sqrt_price_upper - sqrt_price_lower)
+        / (sqrt_price_lower * sqrt_price_upper);
 }
 
 fn get_amount1_delta(sqrt_price_lower: f64, sqrt_price_upper: f64, sqrt_l: f64) -> f64 {
     return sqrt_l * (sqrt_price_upper - sqrt_price_lower) / *Q96;
 }
 
-fn get_sqrt_price_from_input(zero_for_one: bool, amount_in: f64, sqrt_price_current: f64, sqrt_l: f64) -> f64 {
+fn get_sqrt_price_from_input(
+    zero_for_one: bool,
+    amount_in: f64,
+    sqrt_price_current: f64,
+    sqrt_l: f64,
+) -> f64 {
     if zero_for_one {
         // amountIn是token0，priceAfter是更低的价格，求sqrtPriceLower
         // sqrtL*Q96*/sqrtPriceLower - sqrtL*Q96*/sqrtPriceUpper = amountIn
@@ -278,7 +311,12 @@ fn get_sqrt_price_from_input(zero_for_one: bool, amount_in: f64, sqrt_price_curr
     }
 }
 
-fn get_sqrt_price_from_output(zero_for_one: bool, amount_out: f64, sqrt_price_current: f64, sqrt_l: f64) -> f64 {
+fn get_sqrt_price_from_output(
+    zero_for_one: bool,
+    amount_out: f64,
+    sqrt_price_current: f64,
+    sqrt_l: f64,
+) -> f64 {
     if zero_for_one {
         // amount_out是token1，priceAfter是更低的价格，求sqrtPriceLower
         // sqrt_l * (sqrt_price_upper - sqrt_price_lower) / Q96 = amountOut

@@ -1,5 +1,5 @@
 use crate::error::UniswapV3MathError;
-use crate::swap::{Slot0, TickInfo};
+use crate::swap::TickInfo;
 use crate::tick_bitmap;
 use crate::tick_math;
 use ethers::prelude::U256;
@@ -9,6 +9,12 @@ use lazy_static::lazy_static;
 lazy_static! {
     pub static ref Q96: f64 = 2f64.powi(96);
     pub static ref Q192: f64 = 2f64.powi(192);
+}
+// 代表pool的当前状况
+pub struct Slot0 {
+    pub sqrt_price: f64,
+    pub liquidity: u128,
+    pub tick: i32,
 }
 
 struct SwapState {
@@ -45,7 +51,7 @@ pub fn swap(
     tick_spacing: i32,
     zero_for_one: bool,
     amount_specified: f64,
-    sqrt_price_limit: U256,
+    sqrt_price_limit_x96: f64,
     slot0: &Slot0,
     fee: f64,
     token0_decimals_factor: f64,
@@ -54,21 +60,21 @@ pub fn swap(
     if ticks.len() == 0 {
         return Ok(SwapResult::default());
     }
-    if sqrt_price_limit <= tick_math::MIN_SQRT_RATIO {
-        return Err(UniswapV3MathError::SplM);
-    }
-    if sqrt_price_limit >= tick_math::MAX_SQRT_RATIO {
-        return Err(UniswapV3MathError::SpuM);
-    }
-    if zero_for_one {
-        if sqrt_price_limit >= slot0.sqrt_price {
-            return Err(UniswapV3MathError::SplC);
-        }
-    } else {
-        if sqrt_price_limit <= slot0.sqrt_price {
-            return Err(UniswapV3MathError::SpuC);
-        }
-    }
+    // if sqrt_price_limit_x96 <= tick_math::MIN_SQRT_RATIO {
+    //     return Err(UniswapV3MathError::SplM);
+    // }
+    // if sqrt_price_limit_x96 >= tick_math::MAX_SQRT_RATIO {
+    //     return Err(UniswapV3MathError::SpuM);
+    // }
+    // if zero_for_one {
+    //     if sqrt_price_limit_x96 >= slot0.sqrt_price {
+    //         return Err(UniswapV3MathError::SplC);
+    //     }
+    // } else {
+    //     if sqrt_price_limit_x96 <= slot0.sqrt_price {
+    //         return Err(UniswapV3MathError::SpuC);
+    //     }
+    // }
     let exact_input = amount_specified > 0f64;
     let amount_specified_remaining = if zero_for_one {
         if amount_specified > 0f64 {
@@ -87,7 +93,6 @@ pub fn swap(
             amount_specified * token0_decimals_factor
         }
     };
-    let sqrt_p_limit = sqrt_price_limit.to_string().parse::<f64>().unwrap();
     let mut state = SwapState {
         amount_specified_remaining,
         amount_calculated: 0f64,
@@ -103,11 +108,11 @@ pub fn swap(
         }
         // 价格到了限价
         if zero_for_one {
-            if state.sqrt_price_x96 <= sqrt_p_limit {
+            if state.sqrt_price_x96 <= sqrt_price_limit_x96 {
                 break;
             }
         } else {
-            if state.sqrt_price_x96 >= sqrt_p_limit {
+            if state.sqrt_price_x96 >= sqrt_price_limit_x96 {
                 break;
             }
         }
@@ -127,13 +132,13 @@ pub fn swap(
         step.sqrt_price_next_x96 = (1.0001f64.powi(step.tick_next) * *Q192).sqrt();
         let hit_to_limit = if zero_for_one {
             // 卖出
-            step.sqrt_price_next_x96 < sqrt_p_limit // 下一个tick的价格比limit低
+            step.sqrt_price_next_x96 < sqrt_price_limit_x96 // 下一个tick的价格比limit低
         } else {
             // 买入
-            step.sqrt_price_next_x96 > sqrt_p_limit // 下一个tick的价格比limit高
+            step.sqrt_price_next_x96 > sqrt_price_limit_x96 // 下一个tick的价格比limit高
         };
         let target_price = if hit_to_limit {
-            sqrt_p_limit
+            sqrt_price_limit_x96
         } else {
             step.sqrt_price_next_x96
         };
